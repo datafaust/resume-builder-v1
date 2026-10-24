@@ -1,3 +1,4 @@
 master_accomplishments.yaml
 /generated_resumes
-/generated_selections
+/generated_selections/*
+!/generated_selections/example_selection.json

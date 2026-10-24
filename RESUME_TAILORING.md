@@ -98,8 +98,8 @@ All displayed IDs above are *examples only*; select based on the actual job desc
 ```bash
 python render_resume.py \
   --inventory master_accomplishments.yaml \
-  --selection company_role_selection.json \
-  --template resume-template.docx \
+  --selection generated_selections/company_role_selection.json \
+  --template templates/resume-template.docx \
   --output company_role_resume.docx
 ```
 

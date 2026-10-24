@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 """Render a resume from a YAML accomplishment inventory + JSON selection.
-Usage: python render_resume.py --inventory master_accomplishments.yaml --selection example_selection.json --template resume-template.docx --output generated-resume.docx
+Usage: python render_resume.py --inventory master_accomplishments.yaml --selection selection.json --template resume-template.docx --output generated-resume.docx
+Selection filenames are read from generated_selections beside this script.
+Template filenames are read from templates beside this script.
+The output file is saved in generated_resumes beside this script.
 Requires: python-docx, pyyaml. LibreOffice can export the output to PDF.
 """
 import argparse, json
@@ -78,7 +81,14 @@ def add_summary(doc, inv, summary):
     doc.add_paragraph(summary_text.strip(), style='Resume Summary')
 
 def produce(inv, sel, template, output):
-    doc=Document(template)
+    template_dir = Path(__file__).resolve().parent / 'templates'
+    template_dir.mkdir(parents=True, exist_ok=True)
+    template_path = Path(template)
+    if template_path.parent == Path('.'):
+        template_path = template_dir / template_path
+    if not template_path.is_file():
+        raise FileNotFoundError(f'Resume template not found: {template_path}')
+    doc=Document(template_path)
     # Template is a blank style carrier, not a sample with placeholders.
     body=doc._element.body
     for child in list(body):
@@ -145,12 +155,19 @@ def produce(inv, sel, template, output):
         for pid in sel['publications']:
             if pid not in pubs: raise ValueError('Unknown publication '+pid)
             add_bullet(doc,pubs[pid])
-    doc.save(output)
+    output_dir = Path(__file__).resolve().parent / 'generated_resumes'
+    output_dir.mkdir(parents=True, exist_ok=True)
+    output_path = output_dir / Path(output).name
+    doc.save(output_path)
+    return output_path
 
 if __name__=='__main__':
-    ap=argparse.ArgumentParser();ap.add_argument('--inventory',default='master_accomplishments.yaml');ap.add_argument('--selection',default='example_selection.json');ap.add_argument('--template',default='resume-template.docx');ap.add_argument('--output',default='generated-resume.docx')
+    ap=argparse.ArgumentParser();ap.add_argument('--inventory',default='master_accomplishments.yaml');ap.add_argument('--selection',default='selection.json');ap.add_argument('--template',default='resume-template.docx');ap.add_argument('--output',default='generated-resume.docx')
     x=ap.parse_args()
+    selection_path = Path(x.selection)
+    if selection_path.parent == Path('.'):
+        selection_path = Path(__file__).resolve().parent / 'generated_selections' / selection_path
     with open(x.inventory,encoding='utf-8') as f: inventory=yaml.safe_load(f)
-    with open(x.selection,encoding='utf-8') as f: selection=json.load(f)
-    produce(inventory,selection,x.template,x.output)
-    print('Wrote', x.output)
+    with selection_path.open(encoding='utf-8') as f: selection=json.load(f)
+    output_path = produce(inventory,selection,x.template,x.output)
+    print('Wrote', output_path)

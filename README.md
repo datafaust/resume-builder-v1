@@ -56,9 +56,15 @@ Install [LibreOffice](https://www.libreoffice.org/) if you want to edit generate
 
 ### 5. Customize your resume template
 
-Open `resume-template.docx` in LibreOffice or Microsoft Word and customize the fonts, margins, headings, and styles.
+Create the `templates` directory if it does not exist, and place `resume-template.docx` inside it:
 
-The Python renderer uses this template to format generated resumes consistently.
+```bash
+mkdir -p templates
+```
+
+Open `templates/resume-template.docx` in LibreOffice or Microsoft Word and customize the fonts, margins, headings, and styles.
+
+The Python renderer reads templates from this directory and creates the directory if it is missing. Keeping templates together will allow you to choose different resume layouts in the future by passing another template filename with `--template`.
 
 ## How It Works
 
@@ -83,7 +89,11 @@ In your ChatGPT Project, prompt:
 >
 > [PASTE JOB DESCRIPTION]
 
-Download the generated JSON into your local project directory.
+Create `generated_selections` in your local project directory if it does not exist, then download the generated JSON into that directory. The renderer looks there when you pass a selection filename.
+
+```bash
+mkdir -p generated_selections
+```
 
 Supported bullet rewriting modes:
 
@@ -98,12 +108,12 @@ Run:
 ```bash
 python render_resume.py \
   --inventory master_accomplishments.yaml \
-  --selection selection.json \
-  --template resume-template.docx \
+  --selection generated_selections/selection.json \
+  --template templates/resume-template.docx \
   --output resume.docx
 ```
 
-The generated `resume.docx` can be opened and edited in LibreOffice or Microsoft Word.
+The generated `generated_resumes/resume.docx` can be opened and edited in LibreOffice or Microsoft Word.
 
 ### 3. Export to PDF (optional)
 
@@ -112,8 +122,8 @@ Using LibreOffice:
 ```bash
 libreoffice --headless \
   --convert-to pdf \
-  --outdir . \
-  resume.docx
+  --outdir generated_resumes \
+  generated_resumes/resume.docx
 ```
 
 On macOS, the LibreOffice executable may need to be called using its full installation path.
@@ -141,11 +151,14 @@ The validation score is an editorial assessment, **not an actual ATS score or pr
 | `GENERATE_YAML.md` | Instructions for generating/updating YAML |
 | `RESUME_TAILORING.md` | Instructions for job-specific tailoring |
 | `RESUME_VALIDATION.md` | Instructions for resume evaluation |
-| `resume-template.docx` | Reusable document formatting template |
+| `templates/` | Directory for reusable DOCX formatting templates |
+| `templates/resume-template.docx` | Default resume formatting template |
 | `render_resume.py` | Python resume generator |
-| `example_selection.json` | Reference JSON structure for selections |
+| `generated_selections/example_selection.json` | Reference JSON structure for selections |
+| `generated_selections/` | Local directory for downloaded job-specific selection JSON files |
+| `generated_resumes/` | Directory created by the renderer for generated DOCX files |
 
-Keep `example_selection.json` available as a schema reference when generating new job-specific selections.
+Keep `generated_selections/example_selection.json` available as a schema reference when generating new job-specific selections.
 
 ## Notes
 
